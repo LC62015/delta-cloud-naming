@@ -492,7 +492,9 @@ body {
       <div id="auth-success" style="display:none;">
         <div class="auth-success-box">
             <h3>You're All Set!</h3>
-            <p>Your Logged In and ready.</p> <! Auto like detect when the user logs in by checking iframe url !>
+            <p>Your Logged In and ready.</p>
+            <p style="font-size:13px; color:#888; margin-top:4px;">Didn't actually log in?</p>
+            <button class="show-login-btn" style="margin-top:12px;" onclick="forceLoginReopen()">Retry</button>
         </div>
       </div>
       
