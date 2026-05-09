@@ -918,7 +918,12 @@ function runLoadWin() {
   let gW = screen.width; let gH = screen.height;
   gmWin = window.open("", "_blank", `width=${gW},height=${gH},top=0,left=0`);
   
-  let targetUrl = cxG.url || cxG.path; 
+  let targetUrl = cxG.url || cxG.path;
+
+  // Escape values before interpolating into HTML / script to prevent injection
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeName = esc(cxG.n);
+  const safeUrlJS = JSON.stringify(String(targetUrl));
 
   gmWin.document.write(`
   <!DOCTYPE html>
