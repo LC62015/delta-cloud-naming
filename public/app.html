@@ -699,12 +699,25 @@ function dodeLayout() {
   let recFilter = [...G_DATA].sort(() => 0.5 - Math.random()).slice(0, 10);
   if(smm) recFilter = [smm, ...recFilter.filter(g => g.id !== '599')].slice(0, 10); // Recommendations (pin Spider-Man)
   
+  // Daily Picks: deterministic random refreshed every 12:00 AM and 12:00 PM
+  let now = new Date();
+  let seed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+  seed = seed * 2 + (now.getHours() < 12 ? 0 : 1);
+  let rnd = (s) => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
+  let dayPool = G_DATA.map((g, i) => ({ g, k: rnd(seed + i) })).sort((a,b) => a.k - b.k).slice(0, 4).map(o => o.g);
+  dayPool.forEach(g => { dayHtml += makethecard(g, 'h'); });
+
   G_DATA.forEach((g, i) => {
     libHtml += makethecard(g, 'v');
-    if(i < 4) dayHtml += makethecard(g, 'h');
-    // Trending limit fix -> Only take next 4
-    else if(i >= 4 && i < 8) trndHtml += makethecard(g, 'h');
+    if(i >= 4 && i < 8) trndHtml += makethecard(g, 'h');
   });
+
+  // Schedule auto-refresh at next 12:00
+  let nextRefresh = new Date(now);
+  nextRefresh.setMinutes(0,0,0);
+  nextRefresh.setHours(now.getHours() < 12 ? 12 : 24);
+  if(window.__dpTimer) clearTimeout(window.__dpTimer);
+  window.__dpTimer = setTimeout(() => dodeLayout(), nextRefresh - now + 1000);
 
   let recHtml = recFilter.map(g => makethecard(g, 'h')).join('');
 
