@@ -996,7 +996,7 @@ function runLoadWin() {
 
       
       setTimeout(() => {
-        frame.src = "${targetUrl}";
+        frame.src = ${safeUrlJS};
         
         // Fade out the black overlay smoothly
         setTimeout(() => {
