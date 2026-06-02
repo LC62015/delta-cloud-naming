@@ -1010,20 +1010,15 @@ function runLoadWin() {
       }, 1500);
 
 
-      
       setTimeout(() => {
-        frame.src = ${safeUrlJS};
-        
         // Fade out the black overlay smoothly
-        setTimeout(() => {
-          let bs = document.getElementById('black-screen');
-          if(bs) {
-            bs.style.opacity = '0';
-            setTimeout(() => bs.style.display = 'none', 1000);
-          }
-        }, 1500);
-
+        let bs = document.getElementById('black-screen');
+        if(bs) {
+          bs.style.opacity = '0';
+          setTimeout(() => bs.style.display = 'none', 1000);
+        }
       }, 2500);
+
     <\/script>
   </body>
   </html>`);
