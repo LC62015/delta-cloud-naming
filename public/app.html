@@ -703,8 +703,8 @@ function dodeLayout() {
   let now = new Date();
   let seed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
   seed = seed * 2 + (now.getHours() < 12 ? 0 : 1);
-  let rnd = (s) => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
-  let dayPool = G_DATA.map((g, i) => ({ g, k: rnd(seed + i) })).sort((a,b) => a.k - b.k).slice(0, 4).map(o => o.g);
+  let dpRnd = (s) => { let x = Math.sin(s) * 10000; return x - Math.floor(x); };
+  let dayPool = G_DATA.map((g, i) => ({ g, k: dpRnd(seed + i) })).sort((a,b) => a.k - b.k).slice(0, 4).map(o => o.g);
   dayPool.forEach(g => { dayHtml += makethecard(g, 'h'); });
 
   G_DATA.forEach((g, i) => {
