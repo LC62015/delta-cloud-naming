@@ -970,8 +970,11 @@ function runLoadWin() {
     <div id="logout-overlay">
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ff4d4d" stroke-width="2" style="margin-bottom:20px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
       <h1 style="margin:0 0 10px 0; font-size:32px; font-weight:700; letter-spacing:-1px;">Session Expired</h1>
-      <p style="color:#aaa; font-size:16px; max-width:450px; line-height:1.6; margin-bottom: 30px;">Hey! It looks like you've been logged out of the cloud provider.<br><br>Please close this window, go back to the <b>Tutorial tab</b>, and log in or register again to continue playing.</p>
-      <button onclick="window.close()" style="padding:14px 36px; background:#fff; color:#000; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:0.3s;">Close Window</button>
+      <p style="color:#aaa; font-size:16px; max-width:450px; line-height:1.6; margin-bottom: 24px;">Hey! It looks like you've been logged out of the cloud provider.<br><br>Try loading through a proxy, or close and log in again from the <b>Tutorial tab</b>.</p>
+      <div style="display:flex; gap:12px;">
+        <button id="proxy-btn" style="padding:14px 28px; background:#4a9eff; color:#fff; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:0.3s;">Retry via Proxy</button>
+        <button onclick="window.close()" style="padding:14px 28px; background:#fff; color:#000; border:none; border-radius:12px; font-size:15px; font-weight:700; cursor:pointer; transition:0.3s;">Close Window</button>
+      </div>
     </div>
 
 
@@ -986,7 +989,18 @@ function runLoadWin() {
     
     <script>
       let frame = document.getElementById('game-frame');
+      let origUrl = ${safeUrlJS};
+      let proxyUrl = 'https://please.untaint.us/?' + encodeURIComponent(origUrl);
+      let autoProxied = false;
 
+      function loadViaProxy() {
+        document.getElementById('logout-overlay').style.display = 'none';
+        let bs = document.getElementById('black-screen');
+        if(bs) { bs.style.opacity = '1'; bs.style.display = 'flex'; bs.textContent = 'Loading via proxy...'; }
+        frame.src = proxyUrl;
+        setTimeout(() => { if(bs) { bs.style.opacity = '0'; setTimeout(() => bs.style.display = 'none', 1000); } }, 2500);
+      }
+      document.getElementById('proxy-btn').addEventListener('click', loadViaProxy);
 
       window.onload = () => { window.focus(); frame.focus(); };
       document.addEventListener('click', () => { window.focus(); frame.focus(); });
@@ -996,7 +1010,11 @@ function runLoadWin() {
         try {
           let frameUrl = frame.contentWindow.location.href;
           if(frameUrl.includes('/login?redirect_uri=')) {
-
+            if(!autoProxied) {
+              autoProxied = true;
+              loadViaProxy();
+              return;
+            }
             document.getElementById('logout-overlay').style.display = 'flex';
             
 
