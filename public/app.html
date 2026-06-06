@@ -990,7 +990,7 @@ function runLoadWin() {
     <script>
       let frame = document.getElementById('game-frame');
       let origUrl = ${safeUrlJS};
-      let proxyUrl = 'https://please.untaint.us/?' + encodeURIComponent(origUrl);
+      let proxyUrl = '/api/public/proxy?url=' + encodeURIComponent(origUrl);
       let autoProxied = false;
 
       function loadViaProxy() {
