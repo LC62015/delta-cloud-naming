@@ -90,6 +90,11 @@ async function handle(request: Request): Promise<Response> {
     body = await request.arrayBuffer();
   }
 
+  const friendly = (title: string, msg: string) => {
+    const html = `<!doctype html><html><head><meta charset="utf-8"><title>${title}</title><style>html,body{margin:0;height:100%;background:#0a0a0a;color:#eaeaea;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;display:flex;align-items:center;justify-content:center}.b{max-width:520px;text-align:center;padding:32px}h1{font-weight:500;font-size:22px;margin:0 0 10px}p{color:#999;font-size:14px;line-height:1.6}code{color:#ffb86b;word-break:break-all}button{margin-top:18px;background:#1a1a1a;color:#fff;border:1px solid #333;padding:10px 18px;border-radius:8px;cursor:pointer}</style></head><body><div class="b"><h1>${title}</h1><p>${msg}</p><p><code>${targetUrl.toString()}</code></p><button onclick="location.reload()">Retry</button></div></body></html>`;
+    return new Response(html, { status: 200, headers: { "content-type": "text/html; charset=utf-8", ...CORS } });
+  };
+
   let upstream: Response;
   try {
     upstream = await fetch(targetUrl.toString(), {
@@ -99,7 +104,10 @@ async function handle(request: Request): Promise<Response> {
       redirect: "follow",
     });
   } catch (e) {
-    return new Response("Upstream fetch failed: " + (e as Error).message, { status: 502, headers: CORS });
+    return friendly("Upstream unreachable", "We couldn't reach the target site. It may be down or blocking the proxy.");
+  }
+  if (upstream.status >= 500) {
+    return friendly("Upstream error " + upstream.status, "The target site returned an error. Try again in a moment.");
   }
 
   const ct = (upstream.headers.get("content-type") || "").toLowerCase();
