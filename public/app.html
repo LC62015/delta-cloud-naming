@@ -513,15 +513,22 @@ body {
   </div>
 
   <div id="v-gnm" class="tab-view">
-    <div style="padding:24px 32px 12px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+    <div style="padding:24px 32px 8px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
       <div>
         <h1 style="font-weight:400; font-size:32px; margin:0; letter-spacing:-1px;">Games</h1>
-        <p style="color:#888; margin:6px 0 0; font-size:14px;">Powered by gn-math.dev, routed through the D3LTA proxy.</p>
+        <p style="color:#888; margin:6px 0 0; font-size:14px;" id="gnm-count">Loading gn-math catalog…</p>
       </div>
-      <button onclick="reloadGnm()" style="background:#1a1a1a; color:#fff; border:1px solid #333; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">Reload</button>
+      <input id="gnm-search" placeholder="Search games" oninput="renderGnm()" style="background:#111; color:#fff; border:1px solid #333; padding:10px 14px; border-radius:10px; outline:none; min-width:260px; font-size:14px;" />
     </div>
-    <div style="padding:0 24px 24px 24px;">
-      <iframe id="gnm-frame" src="/api/public/proxy?url=https%3A%2F%2Fgn-math.dev%2Fgames.html" style="width:100%; height:calc(100vh - 180px); border:1px solid #222; border-radius:12px; background:#0a0a0a;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-modals"></iframe>
+    <div id="gnm-grid" style="padding:12px 24px 32px 24px; display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:14px; max-height:calc(100vh - 200px); overflow-y:auto;"></div>
+    <div id="gnm-player" style="display:none; position:fixed; inset:0; background:#000; z-index:9999;">
+      <div style="position:absolute; top:0; left:0; right:0; height:44px; background:#0a0a0a; border-bottom:1px solid #222; display:flex; align-items:center; padding:0 16px; gap:12px; z-index:2;">
+        <button onclick="closeGnm()" style="background:#1a1a1a; color:#fff; border:1px solid #333; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px;">← Back</button>
+        <strong id="gnm-title" style="color:#fff; font-weight:500; font-size:14px;"></strong>
+        <span style="flex:1"></span>
+        <button onclick="document.getElementById('gnm-iframe').requestFullscreen && document.getElementById('gnm-iframe').requestFullscreen()" style="background:#1a1a1a; color:#fff; border:1px solid #333; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px;">Fullscreen</button>
+      </div>
+      <iframe id="gnm-iframe" style="position:absolute; top:44px; left:0; right:0; bottom:0; width:100%; height:calc(100% - 44px); border:none; background:#000;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-modals"></iframe>
     </div>
   </div>
 
@@ -793,11 +800,62 @@ function chgTab(v) {
   
   document.getElementById('b-'+v).classList.add('active');
   document.getElementById('v-'+v).classList.add('active');
+  if (v === 'gnm' && !window.__gnmLoaded) loadGnm();
 }
 
-function reloadGnm() {
-  var f = document.getElementById('gnm-frame');
-  if (f) f.src = f.src;
+// ---- gn-math catalog (data from gn-math/assets@main/zones.json, games played via /api/public/proxy) ----
+const GNM_COVER = "https://raw.githubusercontent.com/gn-math/covers/main";
+const GNM_HTML  = "https://raw.githubusercontent.com/gn-math/html/main";
+window.__gnmZones = [];
+window.__gnmLoaded = false;
+
+async function loadGnm() {
+  window.__gnmLoaded = true;
+  const countEl = document.getElementById('gnm-count');
+  try {
+    const r = await fetch('/gnmath-zones.json');
+    const json = await r.json();
+    window.__gnmZones = json.filter(z => z.id !== -1);
+    countEl.textContent = window.__gnmZones.length + ' games available — click any to play';
+    renderGnm();
+  } catch (e) {
+    countEl.textContent = 'Failed to load catalog: ' + e.message;
+  }
+}
+
+function renderGnm() {
+  const grid = document.getElementById('gnm-grid');
+  const q = (document.getElementById('gnm-search').value || '').toLowerCase();
+  const list = window.__gnmZones.filter(z => z.name.toLowerCase().includes(q));
+  grid.innerHTML = '';
+  for (const z of list) {
+    const cover = z.cover.replace('{COVER_URL}', GNM_COVER).replace('{HTML_URL}', GNM_HTML);
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#111; border:1px solid #222; border-radius:10px; overflow:hidden; cursor:pointer; transition:transform .15s, border-color .15s;';
+    card.onmouseenter = () => { card.style.transform='translateY(-2px)'; card.style.borderColor='#444'; };
+    card.onmouseleave = () => { card.style.transform=''; card.style.borderColor='#222'; };
+    card.onclick = () => playGnm(z);
+    card.innerHTML = '<div style="aspect-ratio:1/1; background:#000;"><img src="'+cover+'" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display=\'none\'"></div><div style="padding:8px 10px; color:#eee; font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">'+z.name+'</div>';
+    grid.appendChild(card);
+  }
+}
+
+function playGnm(z) {
+  if (z.url && z.url.startsWith('http') && !z.url.includes('{HTML_URL}')) {
+    // external link (e.g., discord) — open new tab
+    window.open(z.url, '_blank');
+    return;
+  }
+  const target = z.url.replace('{COVER_URL}', GNM_COVER).replace('{HTML_URL}', GNM_HTML);
+  const proxied = '/api/public/proxy?url=' + encodeURIComponent(target);
+  document.getElementById('gnm-title').textContent = z.name;
+  document.getElementById('gnm-iframe').src = proxied;
+  document.getElementById('gnm-player').style.display = 'block';
+}
+
+function closeGnm() {
+  document.getElementById('gnm-iframe').src = 'about:blank';
+  document.getElementById('gnm-player').style.display = 'none';
 }
 
 // the auto detecting like when the user logged in
