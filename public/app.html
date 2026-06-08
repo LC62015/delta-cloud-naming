@@ -512,6 +512,19 @@ body {
     </div>
   </div>
 
+  <div id="v-gnm" class="tab-view">
+    <div style="padding:24px 32px 12px 32px; display:flex; align-items:center; justify-content:space-between; gap:16px;">
+      <div>
+        <h1 style="font-weight:400; font-size:32px; margin:0; letter-spacing:-1px;">Games</h1>
+        <p style="color:#888; margin:6px 0 0; font-size:14px;">Powered by gn-math.dev, routed through the D3LTA proxy.</p>
+      </div>
+      <button onclick="reloadGnm()" style="background:#1a1a1a; color:#fff; border:1px solid #333; padding:8px 14px; border-radius:8px; cursor:pointer; font-size:13px;">Reload</button>
+    </div>
+    <div style="padding:0 24px 24px 24px;">
+      <iframe id="gnm-frame" src="/api/public/proxy?url=https%3A%2F%2Fgn-math.dev%2Fgames.html" style="width:100%; height:calc(100vh - 180px); border:1px solid #222; border-radius:12px; background:#0a0a0a;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-modals"></iframe>
+    </div>
+  </div>
+
 </div>
 
 
@@ -522,6 +535,7 @@ body {
     <div class="d-btn active" id="b-d3lta" onclick="chgTab('d3lta')">D3LTA</div>
     <div class="d-btn" id="b-lib" onclick="chgTab('lib')">Library</div>
     <div class="d-btn" id="b-tut" onclick="chgTab('tut')">Tutorial</div>
+    <div class="d-btn" id="b-gnm" onclick="chgTab('gnm')">Games</div>
   </div>
 
   <div class="trk-widg" id="tk">
@@ -779,6 +793,11 @@ function chgTab(v) {
   
   document.getElementById('b-'+v).classList.add('active');
   document.getElementById('v-'+v).classList.add('active');
+}
+
+function reloadGnm() {
+  var f = document.getElementById('gnm-frame');
+  if (f) f.src = f.src;
 }
 
 // the auto detecting like when the user logged in
