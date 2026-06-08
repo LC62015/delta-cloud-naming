@@ -795,6 +795,11 @@ function chgTab(v) {
   document.getElementById('v-'+v).classList.add('active');
 }
 
+function reloadGnm() {
+  var f = document.getElementById('gnm-frame');
+  if (f) f.src = f.src;
+}
+
 // the auto detecting like when the user logged in
 let isAuth = false;
 let devMode = false;
