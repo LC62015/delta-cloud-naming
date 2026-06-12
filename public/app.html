@@ -801,7 +801,14 @@ function chgTab(v) {
   
   document.getElementById('b-'+v).classList.add('active');
   document.getElementById('v-'+v).classList.add('active');
-  if (v === 'gnm' && !window.__gnmLoaded) loadGnm();
+  if (v === 'gnm') {
+    if (!window.__gnmLoaded) { loadGnm(); }
+    else {
+      const c = document.getElementById('gnm-count');
+      if (c) c.textContent = window.__gnmZones.length + ' games available — click any to play';
+      renderGnm();
+    }
+  }
 }
 
 async function ensureGnmInLib() {
