@@ -870,13 +870,15 @@ function renderGnm() {
   const list = window.__gnmZones.filter(z => z.name.toLowerCase().includes(q));
   grid.innerHTML = '';
   for (const z of list) {
-    const cover = z.cover.replace('{COVER_URL}', GNM_COVER).replace('{HTML_URL}', GNM_HTML);
+    const cover = (z.cover || '').replace('{COVER_URL}', GNM_COVER).replace('{HTML_URL}', GNM_HTML);
     const card = document.createElement('div');
-    card.style.cssText = 'background:#111; border:1px solid #222; border-radius:10px; overflow:hidden; cursor:pointer; transition:transform .15s, border-color .15s;';
-    card.onmouseenter = () => { card.style.transform='translateY(-2px)'; card.style.borderColor='#444'; };
-    card.onmouseleave = () => { card.style.transform=''; card.style.borderColor='#222'; };
-    card.onclick = () => playGnm(z);
-    card.innerHTML = '<div style="aspect-ratio:1/1; background:#000;"><img src="'+cover+'" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.style.display=\'none\'"></div><div style="padding:8px 10px; color:#eee; font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">'+z.name+'</div>';
+    card.className = 'c-v';
+    card.setAttribute('data-search', (z.name||'').toLowerCase());
+    card.addEventListener('click', () => playGnm(z));
+    const fallback = 'https://via.placeholder.com/600x900/111/666?text=' + encodeURIComponent(z.name||'Game');
+    card.innerHTML =
+      '<img src="' + cover + '" loading="lazy" onerror="this.onerror=null;this.src=\''+fallback+'\'">' +
+      '<div class="c-inf"><h3>' + (z.name||'Game') + '</h3><span>' + (z.author||'gn-math') + '</span></div>';
     grid.appendChild(card);
   }
 }
