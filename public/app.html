@@ -804,6 +804,36 @@ function chgTab(v) {
   if (v === 'gnm' && !window.__gnmLoaded) loadGnm();
 }
 
+async function ensureGnmInLib() {
+  if (!window.__gnmZones || !window.__gnmZones.length) {
+    try {
+      const r = await fetch('/gnmath-zones.json');
+      const json = await r.json();
+      window.__gnmZones = json.filter(z => z.id !== -1);
+      window.__gnmLoaded = true;
+    } catch (e) { return; }
+  }
+  appendGnmToLib();
+}
+
+function appendGnmToLib() {
+  const grid = document.getElementById('g-lib');
+  if (!grid || grid.querySelector('[data-gnm="1"]')) return;
+  const frag = document.createDocumentFragment();
+  for (const z of window.__gnmZones) {
+    const cover = (z.cover || '').replace('{COVER_URL}', GNM_COVER).replace('{HTML_URL}', GNM_HTML);
+    const card = document.createElement('div');
+    card.className = 'c-v';
+    card.setAttribute('data-gnm', '1');
+    card.setAttribute('data-search', (z.name || '').toLowerCase() + ' gn-math browser');
+    card.onclick = () => playGnm(z);
+    card.innerHTML =
+      '<img src="' + cover + '" loading="lazy" onerror="this.src=\'https://via.placeholder.com/600x900/111/666?text=' + encodeURIComponent(z.name||'Game') + '\'">' +
+      '<div class="c-inf"><h3>' + (z.name||'Game') + '</h3><span>gn-math</span></div>';
+    frag.appendChild(card);
+  }
+  grid.appendChild(frag);
+
 // ---- gn-math catalog (data from gn-math/assets@main/zones.json, games played via /api/public/proxy) ----
 const GNM_COVER = "https://raw.githubusercontent.com/gn-math/covers/main";
 const GNM_HTML  = "https://raw.githubusercontent.com/gn-math/html/main";
